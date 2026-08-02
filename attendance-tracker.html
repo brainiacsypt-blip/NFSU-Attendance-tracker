@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Attendance Tracker — BBA-MBA (Integrated) Sem III</title>
+<meta name="description" content="Modern attendance tracker for NFSU School of Management Studies BBA-MBA Integrated Semester III timetable, with analytics, shortage alerts and faculty directory." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070b14; --bg2:#0c121f; --surface:rgba(255,255,255,.045); --surface-2:rgba(255,255,255,.08);
+  --border:rgba(255,255,255,.10); --text:#eaf0ff; --muted:#8e9bb8;
+  --accent:#4ade9b; --accent2:#38bdf8; --warn:#fbbf24; --danger:#fb7185;
+  --glow:0 0 0 1px rgba(255,255,255,.05), 0 18px 50px -20px rgba(56,189,248,.35);
+  --radius:18px; --font:'Inter',system-ui,sans-serif; --display:'Sora',var(--font);
+}
+html[data-theme="light"]{
+  --bg:#f5f7fb; --bg2:#ffffff; --surface:rgba(10,20,40,.035); --surface-2:rgba(10,20,40,.06);
+  --border:rgba(10,20,40,.10); --text:#0d1526; --muted:#5a6782;
+  --accent:#0f9d63; --accent2:#0284c7; --warn:#b45309; --danger:#e11d48;
+  --glow:0 0 0 1px rgba(10,20,40,.04), 0 18px 45px -24px rgba(2,132,199,.4);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(900px 500px at 12% -8%,rgba(56,189,248,.20),transparent 60%),
+             radial-gradient(800px 480px at 92% 0%,rgba(74,222,155,.16),transparent 60%);}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 16px 80px}
+header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.logo{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-family:var(--display);font-weight:700;
+  background:linear-gradient(135deg,var(--accent2),var(--accent));color:#04121b;box-shadow:var(--glow)}
+h1{font-family:var(--display);font-size:1.15rem;margin:0;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:.78rem;margin-top:2px}
+.spacer{flex:1}
+.iconbtn{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:9px 13px;
+  font:inherit;font-size:.8rem;cursor:pointer;transition:.18s}
+.iconbtn:hover{background:var(--surface-2);transform:translateY(-1px)}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;padding:6px;background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;margin-bottom:20px;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{flex:0 0 auto;background:transparent;border:0;color:var(--muted);font:inherit;font-size:.84rem;font-weight:500;
+  padding:9px 15px;border-radius:11px;cursor:pointer;transition:.18s;white-space:nowrap}
+nav.tabs button.active{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#04121b;font-weight:600}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;backdrop-filter:blur(14px)}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.kpi .label{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.kpi .value{font-family:var(--display);font-size:2rem;margin-top:6px;letter-spacing:-.03em}
+.kpi .foot{font-size:.75rem;color:var(--muted);margin-top:4px}
+h2.sec{font-family:var(--display);font-size:1rem;margin:26px 0 12px;letter-spacing:-.01em}
+.ring{--p:0;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;
+  background:conic-gradient(var(--rc,var(--accent)) calc(var(--p)*1%),var(--surface-2) 0)}
+.ring i{width:76px;height:76px;border-radius:50%;background:var(--bg2);display:grid;place-items:center;
+  font-family:var(--display);font-style:normal;font-size:1.05rem}
+.row{display:flex;align-items:center;gap:14px}
+.bar{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.bar>span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .5s}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.7rem;font-weight:600;padding:4px 10px;border-radius:99px;
+  background:var(--surface-2);color:var(--muted)}
+.pill.ok{background:rgba(74,222,155,.14);color:var(--accent)}
+.pill.warn{background:rgba(251,191,36,.14);color:var(--warn)}
+.pill.bad{background:rgba(251,113,133,.16);color:var(--danger)}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th,td{padding:10px 10px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:.68rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600}
+.scroll{overflow-x:auto}
+.slot{border:1px solid var(--border);border-radius:14px;padding:11px;background:var(--surface);min-width:150px}
+.slot .code{font-size:.68rem;color:var(--muted);letter-spacing:.04em}
+.slot .name{font-weight:600;font-size:.84rem;margin:3px 0 6px;line-height:1.25}
+.lunch{display:grid;place-items:center;color:var(--muted);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+  border:1px dashed var(--border);border-radius:14px;background:transparent}
+.mark{display:flex;gap:6px;flex-wrap:wrap}
+.mark button{flex:1;min-width:44px;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:9px;
+  padding:6px 4px;font:inherit;font-size:.72rem;font-weight:600;cursor:pointer;transition:.15s}
+.mark button:hover{background:var(--surface-2)}
+.mark button.on[data-v="P"]{background:var(--accent);border-color:var(--accent);color:#04121b}
+.mark button.on[data-v="A"]{background:var(--danger);border-color:var(--danger);color:#1b0410}
+.mark button.on[data-v="C"]{background:var(--warn);border-color:var(--warn);color:#180f00}
+input,select{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:11px;padding:9px 11px;
+  font:inherit;font-size:.82rem;outline:none}
+input:focus,select:focus{border-color:var(--accent2)}
+.teacher{display:flex;gap:13px;align-items:flex-start}
+.avatar{width:46px;height:46px;border-radius:14px;flex:0 0 auto;display:grid;place-items:center;font-family:var(--display);
+  font-weight:700;font-size:.9rem;color:#04121b}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.74rem;color:var(--muted);margin-top:10px}
+.dot{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:5px}
+.heat{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.heat div{aspect-ratio:1;border-radius:6px;background:var(--surface-2);font-size:.6rem;display:grid;place-items:center;color:var(--muted)}
+.muted{color:var(--muted);font-size:.78rem;line-height:1.55}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,120%);background:var(--bg2);border:1px solid var(--border);
+  padding:11px 18px;border-radius:14px;font-size:.82rem;box-shadow:var(--glow);z-index:50;transition:.3s}
+.toast.show{transform:translate(-50%,0)}
+.tt th,.tt td{border:1px solid var(--border);text-align:center;font-size:.72rem;padding:8px 6px}
+.tt .day{font-weight:600;background:var(--surface-2)}
+footer{margin-top:40px;text-align:center;color:var(--muted);font-size:.72rem}
+@media(max-width:640px){.kpi .value{font-size:1.6rem}.wrap{padding:16px 12px 70px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="logo">AT</div>
+  <div>
+    <h1>Attendance Command Center</h1>
+    <div class="sub">NFSU · School of Management Studies · BBA-MBA (Integrated) · Sem III · Room 130</div>
+  </div>
+  <div class="spacer"></div>
+  <button class="iconbtn" id="themeBtn">Light mode</button>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="active" data-tab="dash">Dashboard</button>
+  <button data-tab="mark">Mark Attendance</button>
+  <button data-tab="tt">Timetable</button>
+  <button data-tab="teach">Teachers</button>
+  <button data-tab="an">Analytics</button>
+  <button data-tab="set">Data &amp; Settings</button>
+</nav>
+
+<section id="dash"></section>
+<section id="mark" hidden></section>
+<section id="tt" hidden></section>
+<section id="teach" hidden></section>
+<section id="an" hidden></section>
+<section id="set" hidden></section>
+
+<footer>Timetable w.e.f. 23-07-2026 · Academic Year 2026-27 (Odd Semester) · Data stored locally in your browser</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- DATA (from official timetable) ---------------- */
+const SUBJECTS = {
+  "BBA-MJ-301": {name:"Financial Management", short:"FM", credits:4, teacher:"Dr. Bhagvan Karnavat", init:"BK", color:"#38bdf8"},
+  "BBA-MJ-302": {name:"Marketing Management", short:"MM", credits:4, teacher:"Dr. Santroop Tanwar", init:"ST", color:"#4ade9b"},
+  "BBA-MJ-303": {name:"Company Accounts", short:"CA", credits:4, teacher:"Dr. Ashwani Kumar", init:"AK", color:"#c084fc"},
+  "BBA-MD-304": {name:"Business Law", short:"BL", credits:4, teacher:"Law Faculty", init:"LF", color:"#fbbf24"},
+  "BBA-AE-305": {name:"Fundamentals of Cyber Security", short:"FCS", credits:2, teacher:"Cyber Security Faculty", init:"CSF", color:"#fb7185"},
+  "BBA-SE-306": {name:"Financial Literacy", short:"FL", credits:2, teacher:"Dr. Thirupathi Chellapalli", init:"TC", color:"#22d3ee"},
+  "BBA-IK-307": {name:"Indian Knowledge System", short:"IKS", credits:2, teacher:"Dr. Neha Singh", init:"NS", color:"#f472b6"},
+  "LIBLAB":     {name:"Library / Lab", short:"LIB", credits:0, teacher:"Self-study", init:"—", color:"#64748b"},
+  "NCCNSS":     {name:"NCC / NSS", short:"NCC", credits:0, teacher:"Activity In-charge", init:"—", color:"#94a3b8"}
+};
+const PERIODS = ["10AM-11AM","11AM-12PM","12PM-1PM","1PM-2PM","2PM-3PM","3PM-4PM","4PM-5PM"];
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+const L = null; // lunch
+const TT = {
+  Monday:    ["BBA-MJ-301","BBA-MJ-303","BBA-MJ-302",L,"BBA-AE-305","BBA-SE-306","LIBLAB"],
+  Tuesday:   ["BBA-MJ-303","BBA-AE-305","BBA-MJ-301",L,"BBA-MJ-302","BBA-MD-304","BBA-SE-306"],
+  Wednesday: ["BBA-MJ-301","LIBLAB","BBA-MJ-302",L,"BBA-MD-304","BBA-IK-307","BBA-IK-307"],
+  Thursday:  ["BBA-MJ-301","BBA-MJ-303","BBA-MD-304",L,"LIBLAB","LIBLAB","LIBLAB"],
+  Friday:    ["BBA-MD-304","BBA-MJ-303","BBA-MJ-302",L,"NCCNSS","NCCNSS","NCCNSS"]
+};
+const TRACKED = c => SUBJECTS[c] && SUBJECTS[c].credits > 0;
+
+/* ---------------- STATE ---------------- */
+const KEY = "nfsu-att-v1";
+const defaults = {records:{}, target:75, theme:"dark", countActivities:false, holidays:{}};
+let S = Object.assign({}, defaults, JSON.parse(localStorage.getItem(KEY) || "{}"));
+const save = () => localStorage.setItem(KEY, JSON.stringify(S));
+const toast = m => { const t=document.getElementById("toast"); t.textContent=m; t.classList.add("show");
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),2200); };
+
+const iso = d => d.toISOString().slice(0,10);
+const parse = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+const dayName = s => ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][parse(s).getDay()];
+const fmt = s => parse(s).toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"short",year:"numeric"});
+
+function slotsFor(date){
+  const dn = dayName(date);
+  if(!DAYS.includes(dn)) return [];
+  return TT[dn].map((code,i)=>({code,period:i})).filter(x=>x.code && (S.countActivities || TRACKED(x.code)));
+}
+const get = (date,p) => (S.records[date]||{})[p] || null;
+function set(date,p,v){
+  S.records[date] = S.records[date] || {};
+  if(v) S.records[date][p]=v; else delete S.records[date][p];
+  if(!Object.keys(S.records[date]).length) delete S.records[date];
+  save();
+}
+
+/* per-subject stats */
+function stats(){
+  const st = {}; Object.keys(SUBJECTS).forEach(c=>{ if(TRACKED(c)||S.countActivities) st[c]={p:0,a:0,c:0,total:0}; });
+  Object.entries(S.records).forEach(([date,slots])=>{
+    const dn = dayName(date); if(!TT[dn]) return;
+    Object.entries(slots).forEach(([p,v])=>{
+      const code = TT[dn][+p]; if(!code || !st[code]) return;
+      if(v==="C"){ st[code].c++; return; }
+      st[code].total++; v==="P" ? st[code].p++ : st[code].a++;
+    });
+  });
+  Object.values(st).forEach(o=> o.pct = o.total ? (o.p/o.total*100) : 0);
+  return st;
+}
+const overall = st => { let p=0,t=0; Object.values(st).forEach(o=>{p+=o.p;t+=o.total}); return {p,t,total:t,pct:t?p/t*100:0}; };
+/* classes needed to reach target, or classes you can skip */
+function advice(o,target){
+  if(!o.total) return {type:"none",n:0};
+  if(o.pct >= target){
+    let n=0; while((o.p)/(o.total+n+1)*100 >= target) n++;
+    return {type:"skip",n};
+  }
+  let n=0; while((o.p+n)/(o.total+n)*100 < target && n<500) n++;
+  return {type:"need",n};
+}
+const cls = (pct,t) => pct>=t ? "ok" : pct>=t-10 ? "warn" : "bad";
+const rc  = (pct,t) => pct>=t ? "var(--accent)" : pct>=t-10 ? "var(--warn)" : "var(--danger)";
+
+/* streak of consecutive fully-present tracked days */
+function streak(){
+  const dates = Object.keys(S.records).sort().reverse(); let n=0;
+  for(const d of dates){
+    const req = slotsFor(d).map(s=>s.period);
+    if(!req.length) continue;
+    const all = req.every(p=>get(d,p)==="P" || get(d,p)==="C");
+    const any = req.some(p=>get(d,p));
+    if(!any) continue;
+    if(all) n++; else break;
+  }
+  return n;
+}
+
+/* ---------------- RENDER: DASHBOARD ---------------- */
+function renderDash(){
+  const st = stats(), o = overall(st), adv = advice(o,S.target);
+  const risky = Object.entries(st).filter(([c,v])=>v.total && v.pct < S.target)
+                 .sort((a,b)=>a[1].pct-b[1].pct);
+  const todaySlots = slotsFor(iso(new Date()));
+  document.getElementById("dash").innerHTML = `
+  <div class="grid g4">
+    <div class="card kpi"><div class="label">Overall attendance</div>
+      <div class="value" style="color:${rc(o.pct,S.target)}">${o.total?o.pct.toFixed(1):"—"}%</div>
+      <div class="foot">${o.p} present of ${o.total} classes marked</div></div>
+    <div class="card kpi"><div class="label">Target</div>
+      <div class="value">${S.target}%</div>
+      <div class="foot">${adv.type==="need"?`Attend next <b>${adv.n}</b> classes to recover`:
+        adv.type==="skip"?`You can miss <b>${adv.n}</b> more class${adv.n===1?"":"es"}`:"Start marking to see guidance"}</div></div>
+    <div class="card kpi"><div class="label">Subjects at risk</div>
+      <div class="value" style="color:${risky.length?"var(--danger)":"var(--accent)"}">${risky.length}</div>
+      <div class="foot">below the ${S.target}% threshold</div></div>
+    <div class="card kpi"><div class="label">Perfect-day streak</div>
+      <div class="value">${streak()}</div>
+      <div class="foot">consecutive full-attendance days</div></div>
+  </div>
+
+  <h2 class="sec">Today · ${fmt(iso(new Date()))}</h2>
+  <div class="card">
+    ${todaySlots.length ? `<div class="grid g3">${todaySlots.map(s=>{
+      const sub=SUBJECTS[s.code], v=get(iso(new Date()),s.period);
+      return `<div class="slot"><div class="code">${PERIODS[s.period]} · ${s.code}</div>
+        <div class="name" style="border-left:3px solid ${sub.color};padding-left:8px">${sub.name}</div>
+        <div class="mark" data-date="${iso(new Date())}" data-p="${s.period}">
+          ${["P","A","C"].map(x=>`<button data-v="${x}" class="${v===x?"on":""}">${x==="P"?"Present":x==="A"?"Absent":"Cancelled"}</button>`).join("")}
+        </div></div>`;}).join("")}</div>`
+      : `<p class="muted">No scheduled classes today. Enjoy the break — or use the Mark Attendance tab to backfill an earlier date.</p>`}
+  </div>
+
+  <h2 class="sec">Subject health</h2>
+  <div class="grid g2">
+    ${Object.entries(st).map(([code,v])=>{
+      const sub=SUBJECTS[code], a=advice(v,S.target);
+      return `<div class="card"><div class="row">
+        <div class="ring" style="--p:${v.pct.toFixed(0)};--rc:${rc(v.pct,S.target)}"><i>${v.total?v.pct.toFixed(0)+"%":"—"}</i></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600">${sub.name}</div>
+          <div class="muted">${code} · ${sub.credits} credits · ${sub.teacher}</div>
+          <div style="margin-top:9px;display:flex;gap:6px;flex-wrap:wrap">
+            <span class="pill ${cls(v.pct,S.target)}">${v.total?(v.pct>=S.target?"Safe":"Below target"):"No data"}</span>
+            <span class="pill">${v.p} P</span><span class="pill">${v.a} A</span><span class="pill">${v.c} cancelled</span>
+          </div>
+          <div class="muted" style="margin-top:7px">${v.total? (a.type==="need"?`Attend ${a.n} more in a row to hit ${S.target}%`:`Buffer: can miss ${a.n}`) : "Mark a class to begin tracking"}</div>
+        </div></div></div>`;}).join("")}
+  </div>`;
+}
+
+/* ---------------- RENDER: MARK ---------------- */
+let markDate = iso(new Date());
+function renderMark(){
+  const slots = slotsFor(markDate), dn = dayName(markDate);
+  document.getElementById("mark").innerHTML = `
+  <div class="card">
+    <div class="row" style="flex-wrap:wrap;gap:10px">
+      <input type="date" id="dpick" value="${markDate}">
+      <button class="iconbtn" id="prevD">‹ Previous day</button>
+      <button class="iconbtn" id="nextD">Next day ›</button>
+      <button class="iconbtn" id="today">Today</button>
+      <div class="spacer"></div>
+      <button class="iconbtn" id="allP">Mark all present</button>
+      <button class="iconbtn" id="clearD">Clear day</button>
+    </div>
+    <div class="muted" style="margin-top:10px">${fmt(markDate)} · ${DAYS.includes(dn)?dn+" schedule":"Weekend — no scheduled classes"}</div>
+  </div>
+  <h2 class="sec">Periods</h2>
+  <div class="grid g3">
+    ${DAYS.includes(dn) ? TT[dn].map((code,i)=>{
+      if(!code) return `<div class="slot lunch">Lunch break · ${PERIODS[i]}</div>`;
+      const sub=SUBJECTS[code], v=get(markDate,i), tracked=TRACKED(code);
+      return `<div class="slot"><div class="code">${PERIODS[i]} · ${code}</div>
+        <div class="name" style="border-left:3px solid ${sub.color};padding-left:8px">${sub.name}</div>
+        <div class="muted" style="margin-bottom:8px">${sub.teacher}${tracked?"":" · not counted"}</div>
+        <div class="mark" data-date="${markDate}" data-p="${i}">
+          ${["P","A","C"].map(x=>`<button data-v="${x}" class="${v===x?"on":""}">${x==="P"?"Present":x==="A"?"Absent":"Cancelled"}</button>`).join("")}
+        </div></div>`;}).join("") : `<p class="muted">Pick a weekday to mark attendance.</p>`}
+  </div>`;
+  const go = n => { const d=parse(markDate); d.setDate(d.getDate()+n); markDate=iso(d); renderMark(); };
+  document.getElementById("dpick").onchange = e => { markDate=e.target.value; renderMark(); };
+  document.getElementById("prevD").onclick = ()=>go(-1);
+  document.getElementById("nextD").onclick = ()=>go(1);
+  document.getElementById("today").onclick = ()=>{markDate=iso(new Date());renderMark();};
+  document.getElementById("allP").onclick = ()=>{ slots.forEach(s=>set(markDate,s.period,"P")); renderMark(); renderDash(); toast("All classes marked present"); };
+  document.getElementById("clearD").onclick = ()=>{ delete S.records[markDate]; save(); renderMark(); renderDash(); toast("Day cleared"); };
+}
+
+/* ---------------- RENDER: TIMETABLE ---------------- */
+function renderTT(){
+  document.getElementById("tt").innerHTML = `
+  <div class="card">
+    <h2 class="sec" style="margin-top:0">Weekly timetable · Semester III · Classroom 130</h2>
+    <div class="scroll"><table class="tt"><thead><tr><th>Weekday</th>${PERIODS.map(p=>`<th>${p}</th>`).join("")}</tr></thead>
+    <tbody>${DAYS.map(d=>`<tr><td class="day">${d}</td>${TT[d].map((c,i)=>{
+      if(!c) return `<td style="color:var(--muted);letter-spacing:.1em">LUNCH</td>`;
+      const s=SUBJECTS[c];
+      return `<td style="background:${s.color}1a"><b>${s.name}</b><br><span style="color:var(--muted)">${c!=="LIBLAB"&&c!=="NCCNSS"?c+" · "+s.init:""}</span></td>`;
+    }).join("")}</tr>`).join("")}</tbody></table></div>
+    <div class="legend">${Object.entries(SUBJECTS).map(([c,s])=>`<span><i class="dot" style="background:${s.color}"></i>${s.name}</span>`).join("")}</div>
+  </div>
+  <h2 class="sec">Weekly load per subject</h2>
+  <div class="card">${(()=>{const cnt={};DAYS.forEach(d=>TT[d].forEach(c=>{if(c)cnt[c]=(cnt[c]||0)+1}));
+    const max=Math.max(...Object.values(cnt));
+    return Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`
+      <div style="margin-bottom:12px"><div class="row" style="justify-content:space-between;font-size:.82rem">
+        <span>${SUBJECTS[c].name}</span><span class="muted">${n} periods/week</span></div>
+      <div class="bar" style="margin-top:5px"><span style="width:${n/max*100}%;background:${SUBJECTS[c].color}"></span></div></div>`).join("");})()}
+  </div>`;
+}
+
+/* ---------------- RENDER: TEACHERS ---------------- */
+function renderTeach(){
+  const st = stats();
+  const load = {}; DAYS.forEach(d=>TT[d].forEach(c=>{ if(c) load[c]=(load[c]||0)+1; }));
+  const list = Object.entries(SUBJECTS).filter(([c])=>c!=="LIBLAB"&&c!=="NCCNSS");
+  document.getElementById("teach").innerHTML = `
+  <div class="card"><h2 class="sec" style="margin-top:0">Faculty directory · who teaches what</h2>
+    <p class="muted">Seven faculty members across the Semester III programme, with credits, weekly load and your attendance in each of their classes.</p></div>
+  <h2 class="sec">Faculty cards</h2>
+  <div class="grid g2">
+    ${list.map(([code,s])=>{
+      const v = st[code]||{p:0,a:0,c:0,total:0,pct:0};
+      return `<div class="card"><div class="teacher">
+        <div class="avatar" style="background:${s.color}">${s.init}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600">${s.teacher}</div>
+          <div class="muted">${s.name} · ${code}</div>
+          <div style="margin-top:9px;display:flex;gap:6px;flex-wrap:wrap">
+            <span class="pill">${s.credits} credits</span>
+            <span class="pill">${load[code]||0} periods/week</span>
+            <span class="pill ${v.total?cls(v.pct,S.target):""}">${v.total?v.pct.toFixed(0)+"% attended":"No data"}</span>
+          </div>
+          <div class="bar" style="margin-top:10px"><span style="width:${v.pct}%;background:${s.color}"></span></div>
+          <div class="muted" style="margin-top:8px">Days: ${DAYS.filter(d=>TT[d].includes(code)).join(", ")||"—"}</div>
+        </div></div></div>`;}).join("")}
+  </div>
+  <h2 class="sec">Summary table</h2>
+  <div class="card scroll"><table><thead><tr><th>#</th><th>Faculty</th><th>Subject</th><th>Code</th><th>Credits</th><th>Periods/wk</th><th>Your %</th></tr></thead>
+  <tbody>${list.map(([code,s],i)=>{const v=st[code]||{total:0,pct:0};
+    return `<tr><td>${i+1}</td><td>${s.teacher}</td><td>${s.name}</td><td>${code}</td><td>${s.credits}</td><td>${load[code]||0}</td>
+    <td><span class="pill ${v.total?cls(v.pct,S.target):""}">${v.total?v.pct.toFixed(1)+"%":"—"}</span></td></tr>`;}).join("")}</tbody></table></div>`;
+}
+
+/* ---------------- RENDER: ANALYTICS ---------------- */
+function renderAn(){
+  const st = stats(), o = overall(st);
+  // last 8 weeks trend
+  const weeks = []; const today = new Date();
+  for(let w=7; w>=0; w--){
+    const end = new Date(today); end.setDate(end.getDate()-w*7);
+    const start = new Date(end); start.setDate(start.getDate()-6);
+    let p=0,t=0;
+    Object.entries(S.records).forEach(([d,slots])=>{
+      const dt=parse(d); if(dt<start||dt>end) return;
+      const dn=dayName(d); if(!TT[dn]) return;
+      Object.entries(slots).forEach(([pi,v])=>{ const c=TT[dn][+pi];
+        if(!c||!(TRACKED(c)||S.countActivities)||v==="C")return; t++; if(v==="P")p++; });
+    });
+    weeks.push({label:`${end.getDate()}/${end.getMonth()+1}`, pct: t?p/t*100:null, t});
+  }
+  const W=620,H=170,pad=26;
+  const pts = weeks.map((w,i)=>({x:pad+i*((W-pad*2)/7), y:H-pad-((w.pct??0)/100)*(H-pad*2), w}));
+  const line = pts.filter(p=>p.w.pct!==null).map((p,i)=>`${i?"L":"M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  // day-of-week performance
+  const dayStat = {}; DAYS.forEach(d=>dayStat[d]={p:0,t:0});
+  Object.entries(S.records).forEach(([d,slots])=>{ const dn=dayName(d); if(!TT[dn])return;
+    Object.entries(slots).forEach(([pi,v])=>{ const c=TT[dn][+pi];
+      if(!c||!(TRACKED(c)||S.countActivities)||v==="C")return; dayStat[dn].t++; if(v==="P")dayStat[dn].p++; }); });
+  // period-of-day performance
+  const perStat = PERIODS.map(()=>({p:0,t:0}));
+  Object.entries(S.records).forEach(([d,slots])=>{ const dn=dayName(d); if(!TT[dn])return;
+    Object.entries(slots).forEach(([pi,v])=>{ const c=TT[dn][+pi];
+      if(!c||!(TRACKED(c)||S.countActivities)||v==="C")return; perStat[+pi].t++; if(v==="P")perStat[+pi].p++; }); });
+  // last 35 days heatmap
+  const cells=[]; for(let i=34;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); const k=iso(d);
+    const req=slotsFor(k).map(s=>s.period); let col="var(--surface-2)", tip=fmt(k)+" — no classes";
+    if(req.length){ const marked=req.filter(p=>get(k,p)); const pres=req.filter(p=>get(k,p)==="P"||get(k,p)==="C").length;
+      if(marked.length){ const r=pres/req.length; tip=`${fmt(k)} — ${pres}/${req.length} attended`;
+        col = r===1?"var(--accent)": r>=.5?"var(--warn)":"var(--danger)"; }
+      else tip=fmt(k)+" — unmarked"; }
+    cells.push({d:d.getDate(),col,tip}); }
+
+  document.getElementById("an").innerHTML = `
+  <div class="card"><h2 class="sec" style="margin-top:0">Attendance trend · last 8 weeks</h2>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">
+      ${[0,25,50,75,100].map(g=>`<line x1="${pad}" x2="${W-pad}" y1="${H-pad-g/100*(H-pad*2)}" y2="${H-pad-g/100*(H-pad*2)}" stroke="var(--border)"/>
+        <text x="2" y="${H-pad-g/100*(H-pad*2)+4}" font-size="9" fill="var(--muted)">${g}</text>`).join("")}
+      <line x1="${pad}" x2="${W-pad}" y1="${H-pad-S.target/100*(H-pad*2)}" y2="${H-pad-S.target/100*(H-pad*2)}" stroke="var(--warn)" stroke-dasharray="4 4"/>
+      ${line?`<path d="${line}" fill="none" stroke="var(--accent2)" stroke-width="2.5" stroke-linejoin="round"/>`:""}
+      ${pts.map(p=>p.w.pct===null?"":`<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="var(--accent)"/>`).join("")}
+      ${pts.map(p=>`<text x="${p.x}" y="${H-8}" font-size="9" fill="var(--muted)" text-anchor="middle">${p.w.label}</text>`).join("")}
+    </svg>
+    <div class="legend"><span><i class="dot" style="background:var(--accent2)"></i>Weekly %</span><span><i class="dot" style="background:var(--warn)"></i>Target ${S.target}%</span></div>
+  </div>
+
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h2 class="sec" style="margin-top:0">Per-subject comparison</h2>
+      ${Object.entries(st).map(([c,v])=>`<div style="margin-bottom:11px">
+        <div class="row" style="justify-content:space-between;font-size:.8rem"><span>${SUBJECTS[c].short} · ${SUBJECTS[c].name}</span>
+        <span class="muted">${v.total?v.pct.toFixed(1)+"%":"—"}</span></div>
+        <div class="bar" style="margin-top:5px"><span style="width:${v.pct}%;background:${SUBJECTS[c].color}"></span></div></div>`).join("")}
+    </div>
+    <div class="card"><h2 class="sec" style="margin-top:0">Weekday performance</h2>
+      ${DAYS.map(d=>{const v=dayStat[d],pct=v.t?v.p/v.t*100:0;
+        return `<div style="margin-bottom:11px"><div class="row" style="justify-content:space-between;font-size:.8rem">
+        <span>${d}</span><span class="muted">${v.t?pct.toFixed(0)+"% of "+v.t:"no data"}</span></div>
+        <div class="bar" style="margin-top:5px"><span style="width:${pct}%"></span></div></div>`;}).join("")}
+    </div>
+    <div class="card"><h2 class="sec" style="margin-top:0">Time-of-day performance</h2>
+      ${PERIODS.map((p,i)=>{const v=perStat[i],pct=v.t?v.p/v.t*100:0; if(i===3) return "";
+        return `<div style="margin-bottom:11px"><div class="row" style="justify-content:space-between;font-size:.8rem">
+        <span>${p}</span><span class="muted">${v.t?pct.toFixed(0)+"%":"no data"}</span></div>
+        <div class="bar" style="margin-top:5px"><span style="width:${pct}%"></span></div></div>`;}).join("")}
+    </div>
+    <div class="card"><h2 class="sec" style="margin-top:0">Last 35 days</h2>
+      <div class="heat">${cells.map(c=>`<div title="${c.tip}" style="background:${c.col};color:${c.col==="var(--surface-2)"?"var(--muted)":"#04121b"}">${c.d}</div>`).join("")}</div>
+      <div class="legend"><span><i class="dot" style="background:var(--accent)"></i>Full</span>
+        <span><i class="dot" style="background:var(--warn)"></i>Partial</span>
+        <span><i class="dot" style="background:var(--danger)"></i>Mostly absent</span>
+        <span><i class="dot" style="background:var(--surface-2)"></i>Unmarked</span></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px"><h2 class="sec" style="margin-top:0">Projection</h2>
+    <p class="muted">At your current rate of <b>${o.total?o.pct.toFixed(1):0}%</b>, attending every remaining class from today would take you to
+    <b>${o.total?Math.min(100,((o.p+40)/(o.total+40)*100)).toFixed(1):0}%</b> after 40 more classes.
+    Missing every class instead would drop you to <b>${o.total?(o.p/(o.total+40)*100).toFixed(1):0}%</b>.</p>
+  </div>`;
+}
+
+/* ---------------- RENDER: SETTINGS ---------------- */
+function renderSet(){
+  const n = Object.keys(S.records).length;
+  document.getElementById("set").innerHTML = `
+  <div class="grid g2">
+    <div class="card"><h2 class="sec" style="margin-top:0">Preferences</h2>
+      <label class="muted">Attendance target (%)</label><br>
+      <input type="number" id="tgt" min="1" max="100" value="${S.target}" style="margin:8px 0 14px;width:120px"><br>
+      <label class="muted"><input type="checkbox" id="acts" ${S.countActivities?"checked":""} style="vertical-align:middle"> Count Library/Lab &amp; NCC/NSS slots in statistics</label>
+      <div style="margin-top:16px"><button class="iconbtn" id="savePrefs">Save preferences</button></div>
+    </div>
+    <div class="card"><h2 class="sec" style="margin-top:0">Data</h2>
+      <p class="muted">${n} day${n===1?"":"s"} recorded, stored only in this browser.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="iconbtn" id="expJSON">Export JSON</button>
+        <button class="iconbtn" id="expCSV">Export CSV</button>
+        <button class="iconbtn" id="impBtn">Import JSON</button>
+        <button class="iconbtn" id="reset" style="border-color:var(--danger);color:var(--danger)">Reset all</button>
+      </div>
+      <input type="file" id="impFile" accept="application/json" hidden>
+    </div>
+  </div>
+  <h2 class="sec">Recorded history</h2>
+  <div class="card scroll">
+    ${n?`<table><thead><tr><th>Date</th><th>Day</th><th>Marked</th><th>Detail</th></tr></thead><tbody>
+    ${Object.keys(S.records).sort().reverse().map(d=>{const dn=dayName(d);
+      return `<tr><td>${d}</td><td>${dn}</td><td>${Object.keys(S.records[d]).length}</td>
+      <td>${Object.entries(S.records[d]).map(([p,v])=>`${SUBJECTS[TT[dn]?.[+p]]?.short||"?"}:${v}`).join(" · ")}</td></tr>`;}).join("")}
+    </tbody></table>`:`<p class="muted">Nothing recorded yet.</p>`}
+  </div>`;
+  document.getElementById("savePrefs").onclick = ()=>{
+    S.target = Math.min(100,Math.max(1,+document.getElementById("tgt").value||75));
+    S.countActivities = document.getElementById("acts").checked; save(); renderAll(); toast("Preferences saved");
+  };
+  const dl=(name,txt,type)=>{const b=new Blob([txt],{type});const u=URL.createObjectURL(b);
+    const a=document.createElement("a");a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);toast("Downloaded "+name);};
+  document.getElementById("expJSON").onclick = ()=>dl("attendance-backup.json",JSON.stringify(S,null,2),"application/json");
+  document.getElementById("expCSV").onclick = ()=>{
+    const rows=[["Date","Day","Period","Time","Code","Subject","Faculty","Status"]];
+    Object.keys(S.records).sort().forEach(d=>{const dn=dayName(d);
+      Object.entries(S.records[d]).forEach(([p,v])=>{const c=TT[dn]?.[+p];if(!c)return;const s=SUBJECTS[c];
+        rows.push([d,dn,+p+1,PERIODS[p],c,s.name,s.teacher,v==="P"?"Present":v==="A"?"Absent":"Cancelled"]);});});
+    dl("attendance.csv",rows.map(r=>r.map(x=>`"${x}"`).join(",")).join("\n"),"text/csv");
+  };
+  document.getElementById("impBtn").onclick = ()=>document.getElementById("impFile").click();
+  document.getElementById("impFile").onchange = e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+    r.onload=()=>{try{S=Object.assign({},defaults,JSON.parse(r.result));save();applyTheme();renderAll();toast("Data imported");}
+    catch(err){toast("Invalid file");}};r.readAsText(f);};
+  document.getElementById("reset").onclick = ()=>{ if(confirm("Delete all attendance data?")){S=JSON.parse(JSON.stringify(defaults));save();renderAll();toast("All data cleared");} };
+}
+
+/* ---------------- WIRING ---------------- */
+function renderAll(){ renderDash(); renderMark(); renderTT(); renderTeach(); renderAn(); renderSet(); }
+document.addEventListener("click", e=>{
+  const b = e.target.closest(".mark button"); if(!b) return;
+  const box = b.parentElement, date = box.dataset.date, p = +box.dataset.p, v = b.dataset.v;
+  set(date, p, b.classList.contains("on") ? null : v);
+  renderDash(); renderMark(); renderTeach(); renderAn(); renderSet();
+});
+document.getElementById("tabs").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-tab]"); if(!b) return;
+  [...e.currentTarget.children].forEach(x=>x.classList.toggle("active",x===b));
+  ["dash","mark","tt","teach","an","set"].forEach(id=>document.getElementById(id).hidden = id!==b.dataset.tab);
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+function applyTheme(){ document.documentElement.dataset.theme = S.theme;
+  document.getElementById("themeBtn").textContent = S.theme==="dark" ? "Light mode" : "Dark mode"; }
+document.getElementById("themeBtn").onclick = ()=>{ S.theme = S.theme==="dark"?"light":"dark"; save(); applyTheme(); };
+applyTheme(); renderAll();
+</script>
+</body>
+</html>
